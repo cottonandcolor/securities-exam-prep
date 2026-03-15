@@ -195,6 +195,24 @@
   flex-wrap: wrap;
 }
 
+.exam-select {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+  color: #c9c4ef;
+  font-size: 0.82rem;
+}
+
+.exam-select select {
+  width: 100%;
+  max-width: 260px;
+  border: 1px solid #3d3775;
+  border-radius: 10px;
+  background: #252056;
+  color: #e8e3ff;
+  padding: 9px 12px;
+}
+
 .upload-btn,
 .clear-btn {
   border: 1px solid #3d3775;

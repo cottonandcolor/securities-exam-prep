@@ -5,7 +5,11 @@ import { exams, questionBank as baseQuestionBank } from './data/questionBank'
 
 const letters = ['A', 'B', 'C', 'D', 'E', 'F']
 const CSV_STORAGE_KEY = 'securities-app-csv-bank-v1'
-const ADMIN_EMAILS = ['admin@flashcard.local', 'cottonandcolor@gmail.com']
+const ADMIN_EMAILS = [
+  'admin@flashcard.local',
+  'cottonandcolor@gmail.com',
+  'preetidav@gmail.com',
+]
 const USER_ROLE_TABLE = 'user_roles'
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -74,8 +78,8 @@ function parseCsvText(csvText) {
   })
 }
 
-function toQuestionRecord(row, rowIndex) {
-  const examId = row.exam?.toLowerCase()
+function toQuestionRecord(row, rowIndex, forcedExamId) {
+  const examId = forcedExamId || row.exam?.toLowerCase()
   const topic = row.topic
   const question = row.question
   const explanation = row.explanation ?? ''
@@ -85,9 +89,9 @@ function toQuestionRecord(row, rowIndex) {
   const c4 = row.choice_d ?? row.choice4 ?? row.d ?? ''
   const rawAnswer = row.answer_index ?? row.answer ?? ''
 
-  if (!examId || !question || !c1 || !c2 || !c3 || !c4) {
+  if (!question || !c1 || !c2 || !c3 || !c4) {
     throw new Error(
-      `Row ${rowIndex + 2}: missing required fields. Required: exam, question, four choices.`,
+      `Row ${rowIndex + 2}: missing required fields. Required: question and four choices.`,
     )
   }
 
@@ -149,6 +153,7 @@ function App() {
   const [authError, setAuthError] = useState('')
   const [csvMessage, setCsvMessage] = useState('')
   const [uploadedBank, setUploadedBank] = useState(() => getSavedCsvBank())
+  const [uploadExamId, setUploadExamId] = useState('sie')
   const [selectedExamId, setSelectedExamId] = useState('sie')
   const [cardIndex, setCardIndex] = useState(0)
   const [incorrectChoices, setIncorrectChoices] = useState([])
@@ -229,7 +234,8 @@ function App() {
       setRoleLoading(true)
 
       const email = authUser.email?.toLowerCase() ?? ''
-      const fallbackRole = ADMIN_EMAILS.includes(email) ? 'admin' : 'learner'
+      const shouldForceAdmin = ADMIN_EMAILS.includes(email)
+      const fallbackRole = shouldForceAdmin ? 'admin' : 'learner'
 
       const { data, error } = await supabase
         .from(USER_ROLE_TABLE)
@@ -248,7 +254,15 @@ function App() {
       }
 
       if (data?.role) {
-        setUserRole(data.role)
+        if (shouldForceAdmin && data.role !== 'admin') {
+          await supabase
+            .from(USER_ROLE_TABLE)
+            .update({ role: 'admin' })
+            .eq('user_id', authUser.id)
+          setUserRole('admin')
+        } else {
+          setUserRole(data.role)
+        }
         setRoleLoading(false)
         return
       }
@@ -417,14 +431,18 @@ function App() {
     try {
       const text = await file.text()
       const rows = parseCsvText(text)
-      const mapped = rows.map((row, index) => toQuestionRecord(row, index))
+      const mapped = rows.map((row, index) =>
+        toQuestionRecord(row, index, uploadExamId),
+      )
 
       const nextBank = { ...uploadedBank }
       mapped.forEach(({ examId, question }) => {
         nextBank[examId] = [...(nextBank[examId] ?? []), question]
       })
       setUploadedBank(nextBank)
-      setCsvMessage(`Imported ${mapped.length} questions from CSV.`)
+      const examName =
+        exams.find((exam) => exam.id === uploadExamId)?.name || uploadExamId
+      setCsvMessage(`Imported ${mapped.length} questions into ${examName}.`)
       resetRun()
     } catch (error) {
       setCsvMessage(error.message)
@@ -631,11 +649,25 @@ function App() {
         <section className="admin-panel">
           <h2>Admin: Upload Question CSV</h2>
           <p>
-            CSV columns: <code>exam</code>, <code>topic</code>,{' '}
+            Select an exam type below, then upload CSV with columns: <code>topic</code>,{' '}
             <code>question</code>, <code>choice_a</code>, <code>choice_b</code>,{' '}
             <code>choice_c</code>, <code>choice_d</code>, <code>answer</code> (A-D
-            or 1-4), <code>explanation</code>.
+            or 1-4), <code>explanation</code>. Optional <code>exam</code> column is
+            ignored when exam type is selected.
           </p>
+          <label className="exam-select">
+            Exam type for this upload
+            <select
+              value={uploadExamId}
+              onChange={(event) => setUploadExamId(event.target.value)}
+            >
+              {exams.map((exam) => (
+                <option key={exam.id} value={exam.id}>
+                  {exam.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <div className="admin-actions">
             <label className="upload-btn">
               Upload CSV

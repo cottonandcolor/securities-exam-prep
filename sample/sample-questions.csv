@@ -1,0 +1,11 @@
+topic,question,choice_a,choice_b,choice_c,choice_d,answer,explanation
+Regulatory,Which organization is a self-regulatory body for broker-dealers?,SEC,FINRA,FDIC,CFTC,B,FINRA oversees broker-dealers as an SRO.
+Markets,Trades executed through dealer networks most commonly occur in which market?,Auction market,Primary market,Over-the-counter market,Mutual fund market,C,OTC markets use dealer networks rather than centralized auctions.
+Suitability,What is the most important basis for a recommendation?,Representative preference,Customer profile and objectives,Social media trend,Issuer branding,B,Recommendations must align with customer profile and objectives.
+Bonds,When interest rates rise, bond prices generally do what?,Rise,Fall,Stay unchanged,Become tax free,B,Bond prices typically move inversely to interest rates.
+Options,A long call position is generally what outlook?,Bullish,Bearish,Market neutral,Income only,A,A long call benefits from upward movement in the underlying.
+State Law,Under state law concepts, agents generally must do what?,Register with the state,Only register federally,Never register,Register only after first sale,A,Agents effecting transactions generally must register at the state level.
+Advisory,Fiduciary duty primarily requires advisers to do what?,Guarantee returns,Act in clients best interests,Avoid all equity securities,Follow issuer instructions only,B,Fiduciary duty centers on loyalty and care for clients.
+Economics,Which risk is reduced most directly by diversification?,Systematic market risk,Issuer-specific risk,Interest rate risk,Inflation risk,B,Diversification mainly reduces unsystematic (issuer-specific) risk.
+Communications,Retail communications typically require what before first use?,No review,Customer signature only,Principal review under firm policy,SEC blanket preapproval,C,Firm procedures generally require principal review for retail communications.
+Settlement,Regular-way equity settlement in U.S. markets is currently?,T+0,T+1,T+2,T+3,B,U.S. equities currently settle regular-way on T+1.
