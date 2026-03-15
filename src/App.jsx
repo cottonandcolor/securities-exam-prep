@@ -9,6 +9,7 @@ const ADMIN_EMAILS = [
   'admin@flashcard.local',
   'cottonandcolor@gmail.com',
   'preetidav@gmail.com',
+  'madhu.gowda@gmail.com',
 ]
 const USER_ROLE_TABLE = 'user_roles'
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
