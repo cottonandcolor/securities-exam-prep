@@ -21,7 +21,11 @@ const supabase =
     : null
 
 function normalizeHeader(value) {
-  return value.trim().toLowerCase().replaceAll(' ', '_')
+  return value
+    .trim()
+    .replace(/^\uFEFF/, '')
+    .toLowerCase()
+    .replaceAll(' ', '_')
 }
 
 function parseCsvLine(line) {
@@ -104,13 +108,33 @@ function toQuestionRecord(row, rowIndex, forcedExamId) {
     )
   }
 
-  let answerIndex
-  if (/^\d+$/.test(rawAnswer)) {
-    const numeric = Number(rawAnswer)
+  const choices = [c1, c2, c3, c4]
+  const normalizedAnswer = rawAnswer.trim()
+  const upperAnswer = normalizedAnswer.toUpperCase()
+  let answerIndex = -1
+
+  if (/^\d+$/.test(normalizedAnswer)) {
+    const numeric = Number(normalizedAnswer)
     answerIndex = numeric >= 1 ? numeric - 1 : numeric
+  } else if (/^[ABCD][\).\-:]?$/.test(upperAnswer)) {
+    answerIndex = ['A', 'B', 'C', 'D'].indexOf(upperAnswer[0])
   } else {
-    const letter = rawAnswer.trim().toUpperCase()
-    answerIndex = ['A', 'B', 'C', 'D'].indexOf(letter)
+    const letterMatch = upperAnswer.match(/^(?:ANSWER|OPTION|CHOICE)?\s*([ABCD])$/)
+    if (letterMatch) {
+      answerIndex = ['A', 'B', 'C', 'D'].indexOf(letterMatch[1])
+    } else {
+      const numberMatch = upperAnswer.match(/^(?:ANSWER|OPTION|CHOICE)?\s*([1-4])$/)
+      if (numberMatch) {
+        answerIndex = Number(numberMatch[1]) - 1
+      } else {
+        const exactChoiceIndex = choices.findIndex(
+          (choice) => choice.trim().toLowerCase() === normalizedAnswer.toLowerCase(),
+        )
+        if (exactChoiceIndex >= 0) {
+          answerIndex = exactChoiceIndex
+        }
+      }
+    }
   }
 
   if (answerIndex < 0 || answerIndex > 3) {
@@ -125,7 +149,7 @@ function toQuestionRecord(row, rowIndex, forcedExamId) {
       id: `csv-${Date.now()}-${rowIndex}`,
       topic: topic || 'Uploaded',
       question,
-      choices: [c1, c2, c3, c4],
+      choices,
       answerIndex,
       explanation: explanation || 'Imported from admin CSV.',
     },
